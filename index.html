@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0A0E1A" />
+<meta name="description" content="SwipeSort — Sort thousands of photos and videos with intuitive swipe gestures. Swipe right to keep, left to delete, up to skip." />
+<meta property="og:title" content="SwipeSort — Sort Your Photos in Minutes" />
+<meta property="og:description" content="Organize thousands of photos and videos with simple swipe gestures. Available for iPhone." />
+<meta property="og:image" content="AppIcon.png" />
+<title>SwipeSort — Sort Your Photos in Minutes</title>
+<style>
+  :root {
+    --bg: #0A0E1A;
+    --bg-card: #141830;
+    --bg-card-2: #111428;
+    --stroke: rgba(255, 255, 255, 0.07);
+    --stroke-strong: rgba(255, 255, 255, 0.14);
+    --text: #FFFFFF;
+    --text-2: rgba(255, 255, 255, 0.72);
+    --text-3: rgba(255, 255, 255, 0.45);
+    --hero-grad: linear-gradient(135deg, #8B5CF6 0%, #C084FC 50%, #F472B6 100%);
+    --purple: #8B5CF6;
+    --pink: #F472B6;
+    --shadow-card: 0 20px 60px rgba(0, 0, 0, 0.55);
+    --shadow-glow: 0 0 80px rgba(139, 92, 246, 0.18);
+    --radius-xl: 32px;
+    --radius-lg: 24px;
+    --radius-md: 16px;
+    --radius-sm: 10px;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  /* ── Background ambience ── */
+  .bg-orbs {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+  }
+  .bg-orbs::before {
+    content: "";
+    position: absolute;
+    width: 900px; height: 900px;
+    top: -300px; right: -200px;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .bg-orbs::after {
+    content: "";
+    position: absolute;
+    width: 700px; height: 700px;
+    bottom: 10%; left: -200px;
+    background: radial-gradient(circle, rgba(244, 114, 182, 0.08) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  /* ── Layout ── */
+  .container {
+    position: relative; z-index: 1;
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ── Nav ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    padding: 16px 0;
+    background: rgba(10, 14, 26, 0.82);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--stroke);
+  }
+  .nav-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  .nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--text);
+  }
+  .nav-brand img {
+    width: 30px; height: 30px; border-radius: 8px;
+  }
+  .nav-brand span {
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: -0.01em;
+  }
+  .nav-links {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+  }
+  .nav-links a {
+    color: var(--text-2);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: color .15s;
+  }
+  .nav-links a:hover { color: var(--text); }
+  @media (max-width: 560px) { .nav-links { display: none; } }
+
+  /* ── Hero ── */
+  .hero {
+    padding: 100px 0 80px;
+    text-align: center;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(139, 92, 246, 0.35);
+    background: rgba(139, 92, 246, 0.1);
+    color: #C4B5FD;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 32px;
+  }
+  .hero-badge .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #A78BFA;
+  }
+
+  .hero-icon {
+    width: 96px; height: 96px;
+    border-radius: 22px;
+    margin: 0 auto 28px;
+    display: block;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.08),
+      0 20px 60px rgba(139, 92, 246, 0.35),
+      var(--shadow-glow);
+  }
+
+  h1 {
+    font-size: clamp(40px, 6vw, 72px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    margin-bottom: 20px;
+  }
+  h1 .grad {
+    background: var(--hero-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .hero-sub {
+    font-size: clamp(17px, 2.2vw, 20px);
+    color: var(--text-2);
+    max-width: 520px;
+    margin: 0 auto 40px;
+    line-height: 1.5;
+  }
+
+  .hero-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .btn-appstore {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 26px;
+    border-radius: 999px;
+    background: var(--text);
+    color: var(--bg);
+    font-size: 15px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: transform .2s, box-shadow .2s;
+    box-shadow: 0 4px 20px rgba(255,255,255,0.12);
+  }
+  .btn-appstore:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(255,255,255,0.18); }
+  .btn-appstore svg { width: 20px; height: 20px; flex: none; }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 26px;
+    border-radius: 999px;
+    border: 1px solid var(--stroke-strong);
+    background: rgba(255,255,255,0.05);
+    color: var(--text-2);
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background .15s, color .15s, transform .15s;
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,0.09); color: var(--text); transform: translateY(-2px); }
+
+  .hero-note {
+    margin-top: 16px;
+    color: var(--text-3);
+    font-size: 13px;
+  }
+
+  /* ── Swipe demo cards ── */
+  .swipe-showcase {
+    margin: 80px 0;
+    text-align: center;
+  }
+
+  .swipe-cards {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 48px;
+  }
+
+  .swipe-card {
+    width: 200px;
+    background: var(--bg-card);
+    border: 1px solid var(--stroke);
+    border-radius: var(--radius-lg);
+    padding: 28px 20px 24px;
+    text-align: center;
+    box-shadow: var(--shadow-card);
+    transition: transform .25s, box-shadow .25s;
+  }
+  .swipe-card:hover { transform: translateY(-6px); box-shadow: 0 30px 70px rgba(0,0,0,0.7); }
+
+  .swipe-card.right { border-color: rgba(139, 92, 246, 0.3); background: rgba(139,92,246,0.07); }
+  .swipe-card.left  { border-color: rgba(244, 114, 182, 0.3); background: rgba(244,114,182,0.07); }
+  .swipe-card.up    { border-color: rgba(99, 179, 237, 0.3); background: rgba(99,179,237,0.07); }
+
+  .swipe-arrow { font-size: 40px; margin-bottom: 14px; }
+  .swipe-direction {
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 6px;
+    letter-spacing: -0.01em;
+  }
+  .swipe-card.right .swipe-direction { color: #A78BFA; }
+  .swipe-card.left  .swipe-direction { color: #F9A8D4; }
+  .swipe-card.up    .swipe-direction { color: #93C5FD; }
+  .swipe-action {
+    font-size: 13px;
+    color: var(--text-3);
+  }
+
+  /* ── Section headings ── */
+  .section-label {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #C084FC;
+    margin-bottom: 12px;
+  }
+  .section-title {
+    font-size: clamp(28px, 4vw, 42px);
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+  .section-sub {
+    font-size: 17px;
+    color: var(--text-2);
+    max-width: 520px;
+    margin: 0 auto;
+    line-height: 1.55;
+  }
+
+  /* ── Feature bento grid ── */
+  .features {
+    padding: 80px 0;
+  }
+  .features-header {
+    text-align: center;
+    margin-bottom: 52px;
+  }
+
+  .bento {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: auto auto;
+    gap: 16px;
+  }
+
+  .bento-card {
+    background: var(--bg-card);
+    border: 1px solid var(--stroke);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    box-shadow: var(--shadow-card);
+    transition: border-color .2s, transform .2s;
+  }
+  .bento-card:hover {
+    border-color: rgba(139, 92, 246, 0.25);
+    transform: translateY(-3px);
+  }
+
+  .bento-card.wide { grid-column: span 2; }
+  .bento-card.tall { grid-row: span 2; }
+
+  .bento-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    display: grid; place-items: center;
+    font-size: 22px;
+    margin-bottom: 16px;
+    background: rgba(139, 92, 246, 0.12);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+  }
+
+  .bento-card h3 {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+  .bento-card p {
+    font-size: 14px;
+    color: var(--text-3);
+    line-height: 1.5;
+  }
+
+  .bento-card.accent {
+    background: linear-gradient(135deg, rgba(139,92,246,0.18) 0%, rgba(244,114,182,0.12) 100%);
+    border-color: rgba(139, 92, 246, 0.3);
+  }
+  .bento-card.accent h3 { color: #E9D5FF; }
+  .bento-card.accent p { color: rgba(233,213,255,0.65); }
+
+  @media (max-width: 768px) {
+    .bento { grid-template-columns: repeat(2, 1fr); }
+    .bento-card.wide { grid-column: span 2; }
+    .bento-card.tall { grid-row: auto; }
+  }
+  @media (max-width: 520px) {
+    .bento { grid-template-columns: 1fr; }
+    .bento-card.wide { grid-column: span 1; }
+  }
+
+  /* ── Pricing ── */
+  .pricing {
+    padding: 80px 0;
+  }
+  .pricing-header {
+    text-align: center;
+    margin-bottom: 52px;
+  }
+
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .plan-card {
+    background: var(--bg-card);
+    border: 1px solid var(--stroke);
+    border-radius: var(--radius-lg);
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    box-shadow: var(--shadow-card);
+  }
+
+  .plan-card.featured {
+    background: linear-gradient(160deg, rgba(139,92,246,0.2) 0%, rgba(244,114,182,0.12) 100%);
+    border-color: rgba(139, 92, 246, 0.4);
+    position: relative;
+  }
+  .plan-card.featured::before {
+    content: "MOST POPULAR";
+    position: absolute;
+    top: -12px; left: 50%; transform: translateX(-50%);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: var(--hero-grad);
+    color: var(--bg);
+    white-space: nowrap;
+  }
+
+  .plan-name {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-3);
+    margin-bottom: 4px;
+  }
+  .plan-price {
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    line-height: 1;
+  }
+  .plan-price sub {
+    font-size: 16px;
+    font-weight: 600;
+    vertical-align: baseline;
+    color: var(--text-3);
+  }
+  .plan-period {
+    font-size: 13px;
+    color: var(--text-3);
+    margin-bottom: 20px;
+  }
+  .plan-trial {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: rgba(139,92,246,0.15);
+    border: 1px solid rgba(139,92,246,0.3);
+    color: #C4B5FD;
+    margin-left: 6px;
+  }
+  .plan-divider {
+    height: 1px;
+    background: var(--stroke);
+    margin: 4px 0 16px;
+  }
+  .plan-features {
+    list-style: none;
+    padding: 0; margin: 0;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .plan-features li {
+    font-size: 14px;
+    color: var(--text-2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .plan-features li .check {
+    color: #A78BFA;
+    font-size: 15px;
+    flex: none;
+  }
+  .plan-features li .cross {
+    color: var(--text-3);
+    font-size: 15px;
+    flex: none;
+  }
+  .plan-cta {
+    margin-top: auto;
+    padding-top: 20px;
+  }
+  .btn-plan {
+    display: block;
+    text-align: center;
+    padding: 12px 20px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: opacity .15s, transform .15s;
+  }
+  .btn-plan.primary {
+    background: var(--hero-grad);
+    color: #fff;
+  }
+  .btn-plan.secondary {
+    border: 1px solid var(--stroke-strong);
+    background: rgba(255,255,255,0.05);
+    color: var(--text-2);
+  }
+  .btn-plan:hover { opacity: 0.88; transform: translateY(-1px); }
+
+  @media (max-width: 680px) {
+    .pricing-grid { grid-template-columns: 1fr; max-width: 360px; }
+  }
+
+  /* ── Privacy strip ── */
+  .privacy-strip {
+    padding: 72px 0;
+  }
+  .privacy-inner {
+    background: linear-gradient(135deg, rgba(139,92,246,0.1) 0%, rgba(244,114,182,0.07) 100%);
+    border: 1px solid rgba(139,92,246,0.2);
+    border-radius: var(--radius-xl);
+    padding: 52px 48px;
+    text-align: center;
+  }
+  .privacy-inner h2 {
+    font-size: clamp(26px, 3.5vw, 38px);
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    margin-bottom: 16px;
+  }
+  .privacy-inner p {
+    font-size: 16px;
+    color: var(--text-2);
+    max-width: 500px;
+    margin: 0 auto 28px;
+  }
+  .privacy-pills {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .privacy-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--stroke-strong);
+    color: var(--text-2);
+  }
+  .privacy-pill span { color: #A78BFA; }
+  @media (max-width: 560px) { .privacy-inner { padding: 36px 24px; } }
+
+  /* ── Footer ── */
+  footer {
+    border-top: 1px solid var(--stroke);
+    padding: 40px 0 48px;
+  }
+  .footer-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 32px;
+  }
+  .footer-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); }
+  .footer-brand img { width: 28px; height: 28px; border-radius: 7px; }
+  .footer-brand span { font-weight: 700; font-size: 15px; }
+  .footer-copy {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--text-3);
+    max-width: 220px;
+  }
+  .footer-nav {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .footer-col h4 {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-3);
+    margin-bottom: 12px;
+  }
+  .footer-col a {
+    display: block;
+    font-size: 14px;
+    color: var(--text-2);
+    text-decoration: none;
+    margin-bottom: 8px;
+    transition: color .15s;
+  }
+  .footer-col a:hover { color: var(--text); }
+  @media (max-width: 560px) {
+    .footer-inner { flex-direction: column; }
+    .footer-nav { gap: 24px; }
+  }
+
+  /* ── Divider ── */
+  .divider {
+    width: 64px; height: 3px;
+    background: var(--hero-grad);
+    border-radius: 999px;
+    margin: 0 auto 20px;
+  }
+
+  ::selection { background: rgba(139, 92, 246, 0.35); color: #fff; }
+</style>
+</head>
+<body>
+
+<div class="bg-orbs"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-brand" href="index.html">
+      <img src="AppIcon.png" alt="SwipeSort icon" />
+      <span>SwipeSort</span>
+    </a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="../Support/index (1).html">Support</a>
+      <a href="../PrivacyPolicy/index.html">Privacy</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-badge">
+      <span class="dot"></span>
+      Available on iPhone
+    </div>
+    <img src="AppIcon.png" alt="SwipeSort" class="hero-icon" />
+    <h1>Sort your photos<br /><span class="grad">in minutes, not hours</span></h1>
+    <p class="hero-sub">Swipe through thousands of photos and videos with intuitive gestures. Organize, delete, and skip &mdash; all without typing a thing.</p>
+    <div class="hero-actions">
+      <a class="btn-appstore" href="https://apps.apple.com/app/swipesort/id6741406813" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+        </svg>
+        Download on App Store
+      </a>
+      <a class="btn-ghost" href="#features">
+        See Features
+      </a>
+    </div>
+    <p class="hero-note">Free to download &nbsp;&middot;&nbsp; Pro available &nbsp;&middot;&nbsp; iPhone only</p>
+  </div>
+</section>
+
+<!-- SWIPE SHOWCASE -->
+<section class="swipe-showcase">
+  <div class="container">
+    <div class="divider"></div>
+    <p class="section-label">How it works</p>
+    <h2 class="section-title">Three gestures.<br />Every photo sorted.</h2>
+    <p class="section-sub">SwipeSort turns an overwhelming photo library into a satisfying, focused task. One swipe at a time.</p>
+
+    <div class="swipe-cards">
+      <div class="swipe-card right">
+        <div class="swipe-arrow">👉</div>
+        <div class="swipe-direction">Swipe Right</div>
+        <p class="swipe-action">Organize into an album</p>
+      </div>
+      <div class="swipe-card left">
+        <div class="swipe-arrow">👈</div>
+        <div class="swipe-direction">Swipe Left</div>
+        <p class="swipe-action">Delete for good</p>
+      </div>
+      <div class="swipe-card up">
+        <div class="swipe-arrow">👆</div>
+        <div class="swipe-direction">Swipe Up</div>
+        <p class="swipe-action">Skip for later</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="container">
+    <div class="features-header">
+      <div class="divider"></div>
+      <p class="section-label">Features</p>
+      <h2 class="section-title">Everything you need<br />to reclaim your camera roll</h2>
+    </div>
+
+    <div class="bento">
+      <div class="bento-card wide accent">
+        <div class="bento-icon">🎞️</div>
+        <h3>Photos &amp; Videos</h3>
+        <p>Sort both photos and videos in the same app. Switch between modes with a single tap and apply the same swipe gestures to your entire media library.</p>
+      </div>
+
+      <div class="bento-card">
+        <div class="bento-icon">📁</div>
+        <h3>Custom Albums</h3>
+        <p>Create as many albums as you need. Organize photos into categories like Vacation, Screenshots, or Family &mdash; exactly how you think.</p>
+      </div>
+
+      <div class="bento-card">
+        <div class="bento-icon">↩️</div>
+        <h3>Instant Undo</h3>
+        <p>Made a mistake? Tap undo immediately after any swipe action to reverse it. Deleted items also go to Recently Deleted for extra safety.</p>
+      </div>
+
+      <div class="bento-card">
+        <div class="bento-icon">🔍</div>
+        <h3>Full-Screen Zoom</h3>
+        <p>Double-tap any photo to inspect it at full resolution with pinch-to-zoom before deciding its fate.</p>
+      </div>
+
+      <div class="bento-card">
+        <div class="bento-icon">📷</div>
+        <h3>Live Photos</h3>
+        <p>Long-press on a Live Photo card to watch it play in full-screen before you sort it.</p>
+      </div>
+
+      <div class="bento-card">
+        <div class="bento-icon">📊</div>
+        <h3>Sort Stats</h3>
+        <p>Track your daily sorting streak, swipes today, this week, and your all-time total. Stay motivated to keep your library clean.</p>
+      </div>
+
+      <div class="bento-card">
+        <div class="bento-icon">🔔</div>
+        <h3>Sort Reminders</h3>
+        <p>Enable weekly local notifications to remind you to stay on top of your growing photo library. Completely private &mdash; no server involved.</p>
+      </div>
+
+      <div class="bento-card">
+        <div class="bento-icon">🔒</div>
+        <h3>100% Private</h3>
+        <p>Your photos never leave your device. No accounts, no cloud uploads, no tracking of your media. Your memories are yours alone.</p>
+      </div>
+
+      <div class="bento-card">
+        <div class="bento-icon">📋</div>
+        <h3>Bulk Select</h3>
+        <p>Long-press in any album to enter multi-select mode. Move or delete multiple photos and videos at once for fast batch cleanup.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+  <div class="container">
+    <div class="pricing-header">
+      <div class="divider"></div>
+      <p class="section-label">Pricing</p>
+      <h2 class="section-title">Start free.<br />Upgrade when you&rsquo;re ready.</h2>
+      <p class="section-sub">SwipeSort is free to download. Upgrade to Pro for unlimited sorting, no ads, and exclusive features.</p>
+    </div>
+
+    <div class="pricing-grid">
+      <!-- Free -->
+      <div class="plan-card">
+        <div class="plan-name">Free</div>
+        <div class="plan-price">$0</div>
+        <div class="plan-period">Forever free</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><span class="check">✓</span> 100 swipes per day</li>
+          <li><span class="check">✓</span> Up to 5 custom albums</li>
+          <li><span class="check">✓</span> Bulk select up to 10 photos</li>
+          <li><span class="check">✓</span> Earn bonus swipes (rewarded ads)</li>
+          <li><span class="cross">—</span> <span style="color:var(--text-3)">Sort Stats screen</span></li>
+          <li><span class="cross">—</span> <span style="color:var(--text-3)">Photo &amp; video EXIF info</span></li>
+          <li><span class="cross">—</span> <span style="color:var(--text-3)">Album sort options</span></li>
+          <li><span class="cross">—</span> <span style="color:var(--text-3)">Banner &amp; interstitial ads</span></li>
+        </ul>
+        <div class="plan-cta">
+          <a class="btn-plan secondary" href="https://apps.apple.com/app/swipesort/id6741406813" target="_blank" rel="noopener noreferrer">Download Free</a>
+        </div>
+      </div>
+
+      <!-- Pro Monthly -->
+      <div class="plan-card featured">
+        <div class="plan-name">Pro Monthly</div>
+        <div class="plan-price">$3.99<sub>/mo</sub> <span class="plan-trial">7-day trial</span></div>
+        <div class="plan-period">Billed monthly &middot; cancel anytime</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><span class="check">✓</span> <strong>Unlimited</strong> swipes</li>
+          <li><span class="check">✓</span> <strong>Unlimited</strong> custom albums</li>
+          <li><span class="check">✓</span> <strong>Unlimited</strong> bulk select</li>
+          <li><span class="check">✓</span> No ads, ever</li>
+          <li><span class="check">✓</span> Sort Stats screen</li>
+          <li><span class="check">✓</span> Photo &amp; video EXIF info</li>
+          <li><span class="check">✓</span> Album sort options</li>
+        </ul>
+        <div class="plan-cta">
+          <a class="btn-plan primary" href="https://apps.apple.com/app/swipesort/id6741406813" target="_blank" rel="noopener noreferrer">Try Free for 7 Days</a>
+        </div>
+      </div>
+
+      <!-- Pro Yearly -->
+      <div class="plan-card">
+        <div class="plan-name">Pro Yearly</div>
+        <div class="plan-price">$19.99<sub>/yr</sub></div>
+        <div class="plan-period">~$1.67/month &middot; save 58%</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><span class="check">✓</span> <strong>Unlimited</strong> swipes</li>
+          <li><span class="check">✓</span> <strong>Unlimited</strong> custom albums</li>
+          <li><span class="check">✓</span> <strong>Unlimited</strong> bulk select</li>
+          <li><span class="check">✓</span> No ads, ever</li>
+          <li><span class="check">✓</span> Sort Stats screen</li>
+          <li><span class="check">✓</span> Photo &amp; video EXIF info</li>
+          <li><span class="check">✓</span> Album sort options</li>
+        </ul>
+        <div class="plan-cta">
+          <a class="btn-plan primary" href="https://apps.apple.com/app/swipesort/id6741406813" target="_blank" rel="noopener noreferrer">Get Pro Yearly</a>
+        </div>
+      </div>
+    </div>
+
+    <p style="text-align:center; margin-top: 20px; font-size: 13px; color: var(--text-3);">All purchases processed securely by Apple. Manage or cancel subscriptions anytime in iOS Settings.</p>
+  </div>
+</section>
+
+<!-- PRIVACY STRIP -->
+<section class="privacy-strip">
+  <div class="container">
+    <div class="privacy-inner">
+      <h2>Privacy is not a feature.<br />It&rsquo;s the foundation.</h2>
+      <p>SwipeSort has no accounts, no servers, and no cloud. Your photos stay on your device &mdash; always.</p>
+      <div class="privacy-pills">
+        <div class="privacy-pill"><span>✓</span> No accounts required</div>
+        <div class="privacy-pill"><span>✓</span> No photo uploads</div>
+        <div class="privacy-pill"><span>✓</span> 100% on-device processing</div>
+        <div class="privacy-pill"><span>✓</span> Works offline</div>
+        <div class="privacy-pill"><span>✓</span> Local notifications only</div>
+      </div>
+      <br />
+      <a class="btn-ghost" href="../PrivacyPolicy/index.html" style="display:inline-flex; margin-top: 8px;">Read the full Privacy Policy</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div>
+        <a class="footer-brand" href="index.html">
+          <img src="AppIcon.png" alt="SwipeSort" />
+          <span>SwipeSort</span>
+        </a>
+        <p class="footer-copy">&copy; <span id="yr">2026</span> Tanvir N Hasan.<br />All rights reserved.</p>
+      </div>
+      <div class="footer-nav">
+        <div class="footer-col">
+          <h4>App</h4>
+          <a href="https://apps.apple.com/app/swipesort/id6741406813" target="_blank" rel="noopener noreferrer">Download</a>
+          <a href="#features">Features</a>
+          <a href="#pricing">Pricing</a>
+        </div>
+        <div class="footer-col">
+          <h4>Support</h4>
+          <a href="../Support/index (1).html">Help &amp; FAQ</a>
+          <a href="mailto:tanvir4talk+appsupport@gmail.com?subject=SwipeSort%20Support">Contact Us</a>
+          <a href="../PrivacyPolicy/index.html">Privacy Policy</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>document.getElementById('yr').textContent = new Date().getFullYear();</script>
+</body>
+</html>
